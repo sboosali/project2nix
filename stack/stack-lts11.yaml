@@ -1,0 +1,7 @@
+resolver: lts-11.0
+
+packages:
+- ./
+
+extra-deps:
+- spiros-0.2

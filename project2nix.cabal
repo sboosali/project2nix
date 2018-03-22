@@ -1,0 +1,264 @@
+name:                project2nix
+version:             0.0
+cabal-version:       >=1.24
+
+----------------------------------------
+
+build-type:          Simple 
+category:            Data 
+synopsis:            TODO 
+description:         
+ .
+ TODO
+ . 
+
+homepage:            http://github.com/sboosali/project2nix#readme
+bug-reports:         http://github.com/sboosali/project2nix/issues
+author:              Spiros Boosalis
+maintainer:          samboosalis@gmail.com
+copyright:           2018 Spiros Boosalis
+license:             BSD3
+license-file:        LICENSE
+stability:           provisional
+tested-with:
+  -- GHC == 8.0.2
+  GHC == 8.2.2
+  -- GHC == 8.4.2
+
+----------------------------------------
+
+extra-source-files:
+  README.md
+  NOTES.md
+  -- stack.yaml
+
+-- data-files:
+--   data/
+
+----------------------------------------
+
+source-repository head
+  type:     git
+  location: git://github.com/sboosali/project2nix.git
+
+----------------------------------------
+-- FLAGS
+
+----------------------------------------
+-- LIBRARY
+
+library
+ hs-source-dirs:
+   sources
+   examples
+
+ ghc-options:
+
+  --------------------
+  -- warning groups
+  --------------------
+
+  -Wall
+  -Wcompat
+
+  --------------------
+  -- disabled warnings
+  --------------------
+
+  -Wno-unticked-promoted-constructors
+
+  --------------------
+  -- enabled warnings
+  --------------------
+
+  -- enable
+  -Wincomplete-uni-patterns
+  -Wincomplete-record-updates
+  -Widentities
+  -Wmissing-methods
+
+  --------------------
+  -- typed-holes
+  --------------------
+
+  -- use `typed-holes`, not `undefined`, during development
+
+  -fdefer-typed-holes
+  -Wtyped-holes
+
+  --------------------
+  -- (miscellaneous warnings)
+  --------------------
+
+  -- raise a warning into an error
+  -- -Werror=missing-fields
+
+ default-language: Haskell2010
+
+ default-extensions:
+
+   --------------------
+   -- "controversial"
+   --------------------
+   NoImplicitPrelude
+   -- NOTE thus every module implicitly has -XNoImplicitPrelude
+   
+   --------------------
+   -- deriving
+   --------------------
+   AutoDeriveTypeable
+   DeriveDataTypeable
+   DeriveGeneric
+   DeriveFunctor
+   DeriveFoldable
+   DeriveTraversable
+   DeriveLift
+   StandaloneDeriving
+
+   --------------------
+   -- syntax
+   --------------------
+   PackageImports
+   LambdaCase
+   EmptyCase
+   TypeOperators
+   PostfixOperators
+   BangPatterns
+   KindSignatures
+   NamedFieldPuns
+   RecordWildCards
+   TupleSections
+   MultiWayIf
+   DoAndIfThenElse
+   EmptyDataDecls
+   InstanceSigs
+   
+   --------------------
+   -- typeclasses
+   --------------------
+   MultiParamTypeClasses
+   FlexibleContexts
+   FlexibleInstances
+   TypeFamilies
+   FunctionalDependencies
+
+   --------------------
+   -- patterns
+   --------------------
+   ViewPatterns
+   PatternSynonyms
+
+   --------------------
+   -- (miscellaneous extensions)
+   --------------------
+   ScopedTypeVariables
+
+ other-extensions:
+
+   --------------------
+   -- macros
+   --------------------
+   TemplateHaskell
+   -- QuasiQuotes
+
+   --------------------
+   -- syntax (of literals)
+   --------------------
+   OverloadedStrings
+   OverloadedLists
+
+   --------------------
+   -- (miscellaneous extensions)
+   --------------------
+   -- RebindableSyntax
+   -- kinds
+   -- DataKinds ConstraintKinds
+   -- harmful to inference
+   -- GADTs RankNTypes
+   -- (miscellaneous)
+
+ exposed-modules:
+   Distribution.Nixpkgs.Haskell.Cabal.New
+   Distribution.Nixpkgs.Haskell.Cabal.New.Types
+
+   Example.Distribution.Nixpkgs.Haskell.Cabal.New
+
+ other-modules:
+   Prelude.Distribution.Nixpkgs.Haskell.Cabal.New
+   -- Paths_project2nix
+
+ -- autogen-modules:
+   -- Paths_project2nix
+
+ build-depends:
+
+ --------------------
+ -- boot libraries / "standard" library
+ --------------------
+
+    base >=4.7 && <5
+  , text 
+  , bytestring
+  , transformers
+  , mtl
+  , containers
+
+  --------------------
+  -- my packages
+  -- (sboosali on github, sboo on hackage)
+  --------------------
+
+  , spiros >=0.2
+  -- , enumerate >=0.2 
+
+  --------------------
+  -- "extended" standard library 
+  --------------------
+
+  , deepseq
+  , hashable
+  , unordered-containers
+
+  --------------------
+  -- ekmett 
+  --------------------
+
+  , exceptions
+  , lens
+
+  --------------------
+  -- (miscellaneous packages)
+  --------------------
+
+  -- ,
+
+
+----------------------------------------
+-- TESTS...
+
+----------------------------------------
+
+test-suite doctest
+ if (impl(ghcjs))
+    buildable: False
+
+ hs-source-dirs:      test
+ main-is:             DocTests.hs
+ type:                exitcode-stdio-1.0
+
+ default-language:    Haskell2010
+ ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
+
+ build-depends:
+    base
+  , project2nix
+  , doctest
+
+----------------------------------------
+-- NOTES
+
+-- originally generated from the `spirosboosalis-simple.hsfiles` template, with `stack new`:
+-- 
+-- $ stack new project2nix https://raw.githubusercontent.com/sboosali/configuration/master/stack/templates/spirosboosalis.hsfiles 
+
+----------------------------------------

@@ -1,0 +1,18 @@
+resolver: lts-11.0
+
+nix:
+  enable: true
+  pure:   false
+  packages:
+  - zlib
+
+packages:
+- ./
+
+- location:
+    git:    https://github.com/sboosali/spiros
+    commit: e0b3a1e2eee3a44a450444bf36f722a6f14d0376
+  extra-dep: true
+  subdirs: [.] 
+
+extra-deps: []
