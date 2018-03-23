@@ -9,27 +9,24 @@ VERSION="$2"
 ########################################
 
 if [[ -z $2 ]]; then
- VERSION=$(date '+%Y-%m-%d')
- # e.g.
- # $ date '+%Y-%m-%d-%Hh-%Mm-%Ss'
- # 2018-03-23-00h-29m-18s
+ URI="cabal://$PACKAGE"
+ FILE="$PACKAGE.nix"
 else
  VERSION="$2" 
- URI="cabal://$NAME-$VERSION"
+ URI="cabal://$PACKAGE-$VERSION"
+ FILE="$PACKAGE-$VERSION.nix"
 fi
-
-FILE="$NAME-$VERSION.nix"
 
 ########################################
 echo
-echo '[NAME]'
+echo '[PACKAGE]'
 echo
-echo "$NAME"
+echo "$PACKAGE"
 
 echo
-echo '[VERSION]'
+echo '[URI]'
 echo
-echo "${2:}"
+echo "${URI}"
 
 echo
 echo "[$FILE]"
@@ -41,8 +38,14 @@ cat "$FILE"
 echo 
 ########################################
 
+#USAGE
 # e.g.
 # 
 # $ ./github2nix.sh https://github.com/haskell/cabal/ Cabal
 # $ cat Cabal.json
-# 
+#
+
+#NOTES
+ # e.g.
+ # $ date '+%Y-%m-%d-%Hh-%Mm-%Ss'
+ # 2018-03-23-00h-29m-18s

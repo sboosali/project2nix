@@ -38,7 +38,8 @@ $ find ./nix
 ./nix/spiros_only-library.nix
 */
 
-, compiler ? null
+, compiler ? "ghc841"
+# ? null
 /* : Maybe String 
 
 `null` means: use the default, 
@@ -634,6 +635,7 @@ myHaskellOverlaysWith = pkgs: self: super: let
  cabal2nix_  = name: source:   cabal2nix  name source  {};
  hackage_    = name: version:  hackage    name version {};
  github2nix_ = o:              github2nix o            {};
+ local2nix_  = path:           local2nix  path         {};
 
  #
  #haskell = pkgs.haskell.lib; 
@@ -651,16 +653,36 @@ myHaskellOverlaysWith = pkgs: self: super: let
    # Add Haskell Packages Below           #
    ######################################## 
 
-  spiros = local2nix ../spiros {};
+  spiros = local2nix_ ../spiros;
+  vinyl = local2nix_ ../vinyl;
 
-  Cabal = call ./Cabal.nix;
-  text = hackage_ "text" "1.2.3.0";
+  Cabal = self.Cabal_2_3_0_0;
 
-  hpack                = hackage_ "hpack" "0.28.0";
-  distribution-nixpkgs = (hackage_ "distribution-nixpkgs" "1.1.1");
-    # >=1.1.1
-  hackage-db           = (hackage_ "hackage-db" "2.0.1");
-    # >=2.0.1
+  Cabal_2_2_0_0 = call ./Cabal-2.2.0.0.nix; 
+  # ^ from hackage
+
+  Cabal_2_3_0_0 = call ./Cabal-2.3.0.0.nix;
+  # ^ from github
+
+  safe-exceptions = call ./safe-exceptions.nix;
+  
+  # lens
+    # for cabal-doctest in custom-setup
+  # lens = jailbreak (super.lens);
+  lens = hackage "lens" "4.16" {
+    #TODO use scope
+    Cabal = self.Cabal_2_2_0_0; 
+    cabal-doctest = hackage "cabal-doctest" "1.0.6" {
+    Cabal = self.Cabal_2_2_0_0;
+     };
+  };  
+
+  # text = hackage_ "text" "1.2.3.0";
+  # hpack                = hackage_ "hpack" "0.28.0";
+  # distribution-nixpkgs = (hackage_ "distribution-nixpkgs" "1.1.1");
+  #   # >=1.1.1
+  # hackage-db           = (hackage_ "hackage-db" "2.0.1");
+  #   # >=2.0.1
 
   # protolude = hackage_ "protolude" "0.2.1";
 
@@ -1053,15 +1075,15 @@ developmentHaskellPackages = with modifiedHaskellPackages; [
  # ghc-mod
  # 
  # 
- hoogle
- # 
- hasktags
- hlint
- # 
- present
- stylish-haskell
- hindent
- #   
+ # hoogle
+ # # 
+ # hasktags
+ # hlint
+ # # 
+ # present
+ # stylish-haskell
+ # hindent
+ # #   
 ];
 
  # developmentEmacsHaskellPackages = with Packages; [

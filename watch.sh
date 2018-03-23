@@ -10,7 +10,7 @@ echo '...' > "$GHCID_FILE"
 
 ########################################
 
-COMMAND='nix-shell --run "cabal new-repl project2nix"'
+COMMAND="./environment.sh $@ --run 'cabal new-repl project2nix'"
 ghcid -o "$GHCID_FILE" --command "$COMMAND"
 
 ########################################
