@@ -1,1 +1,1 @@
-import ./project2nix.nix 
+import ./project2nix.nix
