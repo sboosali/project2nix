@@ -38,3 +38,6 @@ TAGS
 # OS X
 .DS_Store
 
+# miscellaneous
+*.golden	-text
+
