@@ -14,11 +14,16 @@ import           "bytestring" Data.ByteString.Lazy (ByteString)
 
 ----------------------------------------
 
+main = defaultMain
+ golden_stub
+
+----------------------------------------
+
 golden_stub :: TestTree
 golden_stub = goldenVsString goldenName goldenFile goldenAction
  where
  goldenName   = "golden test (stub)"
- goldenFile   =  "test/golden/project2nix.golden" 
+ goldenFile   = "test/golden/project2nix.golden" 
  goldenAction = do
      return "project2nix"
 

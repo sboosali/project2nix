@@ -4,9 +4,9 @@
 another custom ('Prelude.Spiros' from the @spiros@ package). 
 
 -}
-module Prelude.Distribution.Nixpkgs.Haskell.Cabal.New
+module Prelude.Distribution.Nixpkgs.Haskell.Cabal
  ( module Prelude.Spiros
- -- , module Prelude.Distribution.Nixpkgs.Haskell.Cabal.New
+ -- , module Prelude.Distribution.Nixpkgs.Haskell.Cabal
  -- , module X
  ) where
 

@@ -180,13 +180,16 @@ library
    -- (miscellaneous)
 
  exposed-modules:
+   Distribution.Nixpkgs.Haskell.Cabal.Condition
+   Distribution.Nixpkgs.Haskell.Cabal.Condition.Types
+
    Distribution.Nixpkgs.Haskell.Cabal.New
    Distribution.Nixpkgs.Haskell.Cabal.New.Types
 
    Example.Distribution.Nixpkgs.Haskell.Cabal.New
 
  other-modules:
-   Prelude.Distribution.Nixpkgs.Haskell.Cabal.New
+   Prelude.Distribution.Nixpkgs.Haskell.Cabal
    -- Paths_project2nix
 
  -- autogen-modules:
@@ -195,44 +198,47 @@ library
  build-depends:
 
  --------------------
- -- boot libraries / "standard" library
+ -- dependencies of the `cabal2nix` package
+ -- (with the same version bounds too). 
  --------------------
 
-    base >=4.7 && <5
-  , text 
-  , bytestring
-  , transformers
-  , mtl
-  , containers
+      base <5
+    , aeson
+    , ansi-wl-pprint
+    , bytestring
+    , Cabal >=2.3 
+      -- required for NFData instances
+    , containers
+    , deepseq >=1.4
+    , directory
+    , distribution-nixpkgs >=1.1.1
+    , filepath
+    , hackage-db >=2.0.1
+    , hopenssl >=2
+    , hpack >= 0.26
+    , language-nix
+    , lens
+    , optparse-applicative
+    , pretty >=1.1.2
+    , process
+    , split
+    , text
+    , time
+    , transformers
+    , yaml
 
   --------------------
   -- my packages
   -- (sboosali on github, sboo on hackage)
   --------------------
 
-  , spiros >=0.2
-  -- , enumerate >=0.2 
+    , spiros >=0.2
 
   --------------------
-  -- "extended" standard library 
+  -- non-`cabal2nix` dependencies
   --------------------
 
-  , deepseq
-  , hashable
-  , unordered-containers
-
-  --------------------
-  -- ekmett 
-  --------------------
-
-  , exceptions
-  , lens
-
-  --------------------
-  -- (miscellaneous packages)
-  --------------------
-
-  -- ,
+    , hnix
 
 
 ----------------------------------------
@@ -241,7 +247,7 @@ library
 ----------------------------------------
 
 test-suite doctest
- if (impl(ghcjs))
+ if impl(ghcjs)
     buildable: False
 
  hs-source-dirs:      test
@@ -255,6 +261,32 @@ test-suite doctest
     base
   , project2nix
   , doctest
+
+----------------------------------------
+test-suite golden
+ if impl(ghcjs)
+    buildable: False
+
+ hs-source-dirs:      test
+ main-is:             GoldenTests.hs
+ type:                exitcode-stdio-1.0
+
+ default-language:    Haskell2010
+ ghc-options:
+   -Wall
+   -threaded
+   -rtsopts -with-rtsopts=-N -with-rtsopts=-K48K
+
+ build-depends:
+                        base
+                      , project2nix
+                      , Cabal 
+                      , filepath
+                      , language-nix
+                      , lens
+                      , pretty
+                      , tasty
+                      , tasty-golden
 
 ----------------------------------------
 -- NOTES
