@@ -17,5 +17,7 @@ $ cat /home/sboo/.nix-defexpr/channels/nixpkgs/.git-revision
 pinning nixpkgs
 
 
+?
+
 
 =======================================

@@ -30,7 +30,7 @@ module Example.Distribution.Nixpkgs.Haskell.Cabal.New where
 
 -- import Distribution.Nixpkgs.Haskell.Cabal.New
 
-import "base" Prelude
+--import "base" Prelude
 
 ----------------------------------------
 

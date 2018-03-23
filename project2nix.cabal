@@ -23,15 +23,19 @@ stability:           provisional
 tested-with:
   -- GHC == 8.0.2
   GHC == 8.2.2
-  -- GHC == 8.4.2
+  GHC == 8.4.1
 
 ----------------------------------------
 
 extra-source-files:
   README.md
   NOTES.md
-  release/cabal.project.freeze
+  releases/README.md
+  releases/cabal.project.freeze
+
   -- stack.yaml
+
+----------------------------------------
 
 data-files:
   data/*.cabal
@@ -204,22 +208,15 @@ library
 
       base <5
     , aeson
-    , ansi-wl-pprint
     , bytestring
-    , Cabal >=2.3 
-      -- required for NFData instances
+    , Cabal >=2.2
+      -- >=2.3 is required for NFData instances
     , containers
     , deepseq >=1.4
     , directory
-    , distribution-nixpkgs >=1.1.1
     , filepath
-    , hackage-db >=2.0.1
-    , hopenssl >=2
-    , hpack >= 0.26
-    , language-nix
     , lens
     , optparse-applicative
-    , pretty >=1.1.2
     , process
     , split
     , text
@@ -239,6 +236,7 @@ library
   --------------------
 
     , hnix
+    , prettyprinter
 
 
 ----------------------------------------
@@ -278,15 +276,14 @@ test-suite golden
    -rtsopts -with-rtsopts=-N -with-rtsopts=-K48K
 
  build-depends:
-                        base
-                      , project2nix
-                      , Cabal 
-                      , filepath
-                      , language-nix
-                      , lens
-                      , pretty
-                      , tasty
-                      , tasty-golden
+   base
+   , project2nix
+   , Cabal 
+   , filepath
+   , lens
+   , prettyprinter
+   , tasty
+   , tasty-golden
 
 ----------------------------------------
 -- NOTES

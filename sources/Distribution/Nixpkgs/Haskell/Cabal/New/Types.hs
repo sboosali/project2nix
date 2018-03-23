@@ -10,9 +10,9 @@ it also defines whatever functions are necessary for those types' instances.
 
 -}
 module Distribution.Nixpkgs.Haskell.Cabal.New.Types where
-import Prelude.Distribution.Nixpkgs.Haskell.Cabal
+--import Prelude.Distribution.Nixpkgs.Haskell.Cabal
 
-import "spiros" Prelude.Spiros.Classes
+--import "spiros" Prelude.Spiros.Classes
 
 ----------------------------------------
 
