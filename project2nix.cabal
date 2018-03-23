@@ -209,7 +209,7 @@ library
       base <5
     , aeson
     , bytestring
-    , Cabal >=2.2
+    , Cabal >=2.3
       -- >=2.3 is required for NFData instances
     , containers
     , deepseq >=1.4
