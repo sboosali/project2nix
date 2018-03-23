@@ -1,0 +1,235 @@
+name:                spiros
+version:             0.2
+synopsis:            my custom prelude
+description:         my custom prelude. diverges from base's; adding, removing, and shadowing.
+homepage:            http://github.com/sboosali/spiros#readme
+license:             BSD3
+license-file:        LICENSE
+author:              Spiros Boosalis
+maintainer:          samboosalis@gmail.com
+copyright:           2018 Spiros Boosalis
+category:            Prelude
+build-type:          Simple
+cabal-version:       >=1.10
+tested-with:
+  GHC == 8.0.2
+  GHC == 8.2.2
+  -- GHC == 8.4.1
+
+extra-source-files:
+  README.md
+  .gitignore
+  .travis.yml
+  HLint.hs
+  stack.yaml
+
+--data-files:
+--  data/
+
+source-repository head
+  type:     git
+  location: https://github.com/sboosali/spiros
+
+----------------------------------------
+
+flag examples
+  default:     True
+  description: Build the examples in @examples/@. They are exposed library modules, for better haddocks and for guaranteeing that they typecheck. 
+
+-- You can disable the doctests test suite with -f-test-doctests.
+flag test-doctest
+  default:     True
+  description: Run the doctests (with the eponymous `doctest`), called the `test doctest` unit (in this cabal file), to verify the documentation's examples. 
+  manual:      True
+
+flag test-unit
+  default:     True 
+  -- False
+           -- TODO  
+  description: Run the unit tests. 
+  manual:      True
+
+flag test-static
+  default: False
+           -- TODO  
+  description: Whether to build the `static` test modules; i.e. the fact that they type check correctly is the test, there's nothing (necessarily) "dynamic" that is tested by running. 
+  manual: True
+
+--------------------------------------
+
+library
+ hs-source-dirs:      sources
+
+ include-dirs:     include
+ install-includes: include/base-feature-macros.h
+
+ default-language:    Haskell2010
+ ghc-options:         -Wall
+
+ if impl(ghc >= 8.2)
+    ghc-options: -Wcpp-undef
+    -- for `base-feature-macros`
+
+ exposed-modules:
+   Prelude.Spiros
+
+   Spiros
+   Spiros.Enable
+   Spiros.WarningValidation 
+   Spiros.WarningValidation.Simple
+   Spiros.WarningValidation.Bifunctor
+   Spiros.WarningValidation.ErrorValidation
+
+   Prelude.Spiros.Reexports
+   Prelude.Spiros.Utilities
+   Prelude.Spiros.Classes
+   Prelude.Spiros.Types
+
+   Prelude.Spiros.System 
+   Prelude.Spiros.Exception
+   Prelude.Spiros.Validator 
+   Prelude.Spiros.GUI
+   Prelude.Spiros.TemplateHaskell
+   Prelude.Spiros.Generics
+
+ -- the above are conceptually `other-modules:`, but exposed for haddock.
+
+ if flag(examples)
+    hs-source-dirs: examples
+    exposed-modules:
+      Examples_spiros
+      Example.WarningValidation
+
+ if impl(ghc >= 8.2.1)
+    hs-source-dirs: other-sources
+    exposed-modules:
+      Data.Digit
+      -- requires -XDerivingStrategies
+
+ build-depends:
+    base                 >= 4.6   && <5.0
+
+  -- , base-feature-macros  >= 0.1 && < 0.2
+
+  , generic-deriving >= 1.11
+    -- for Generics.Deriving.Semigroup
+
+  , template-haskell     >= 2.11
+
+  --TODO , clock 
+
+  , string-conv
+
+  -- , protolude            >= 0.2.1
+  -- -- ^ string-conv
+  -- -- protolude doesn't cross-compile onto android, because of `clock`
+
+  -- , basic-prelude
+  -- --  extra symbols
+  -- , base-prelude
+  -- --  all of base, modulo conflicting symbols
+  -- , mtl-prelude
+  -- --  Reexports of most definitions from \"mtl\" and \"transformers\".
+  , safe
+  , safe-exceptions 
+    -- re-exports exceptions
+
+  , mtl
+  , transformers
+  , text
+  , bytestring
+  , deepseq 
+    -- >= 1.4.3 
+    -- NFData1, NFData2
+  , containers
+  , vector
+  , time
+  , process
+  , directory
+  -- , shake
+  -- , optparse-applicative >= 0.10  && <0.13
+  -- , optparse-generic     >= 1.1.0 && <1.2
+
+  , exceptions 
+  , hashable
+
+--  , semigroups
+ -- TODO when was nonempty list and semigroup introduced into base? 
+
+  , stm
+  , vinyl
+  , split
+  , data-default-class
+  , unordered-containers
+
+  -- , prettyprinter 
+--  , wl-pprint-text
+  -- ??
+
+  -- , async
+  -- , parallel
+
+  -- , interpolatedstring-perl6
+  -- needs haskell-src-exts
+
+----------------------------------------
+
+test-suite doctest
+ if !impl(ghcjs) && !flag(test-doctest)
+    buildable: False
+
+ hs-source-dirs:      test
+ main-is:             DocTests.hs
+
+ type:                exitcode-stdio-1.0
+ default-language:    Haskell2010
+
+ ghc-options:         -Wall 
+
+ build-depends:
+    base
+  , spiros
+  , doctest
+
+----------------------------------------
+
+test-suite unit
+ if !(flag(test-unit) && flag(examples))
+    buildable: False
+
+ hs-source-dirs:      test
+ main-is:             UnitTests.hs
+ other-modules:
+  UnitTests.WarningValidation
+
+ type:                exitcode-stdio-1.0
+ default-language:    Haskell2010
+
+ ghc-options:         -Wall 
+
+ build-depends:
+    base
+  , spiros
+  , tasty
+  , tasty-hunit
+
+----------------------------------------
+
+test-suite static
+ if !flag(test-static)
+    buildable: False
+
+ hs-source-dirs:      test
+ main-is:             StaticTests.hs
+ other-modules:
+  StaticTests.Generics
+
+ type:                exitcode-stdio-1.0
+ default-language:    Haskell2010
+ ghc-options:         -Wall 
+
+ build-depends:
+    base
+  , spiros
+
+----------------------------------------

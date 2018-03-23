@@ -5,7 +5,7 @@ cabal-version:       >=1.24
 ----------------------------------------
 
 build-type:          Simple 
-category:            Data 
+category:            Nix, Development
 synopsis:            TODO 
 description:         
  .
@@ -30,10 +30,12 @@ tested-with:
 extra-source-files:
   README.md
   NOTES.md
+  release/cabal.project.freeze
   -- stack.yaml
 
--- data-files:
---   data/
+data-files:
+  data/*.cabal
+  data/*.nix
 
 ----------------------------------------
 

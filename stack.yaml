@@ -1,0 +1,14 @@
+resolver: lts-11.1
+
+nix:
+  enable: true
+  pure:   false
+  packages:
+  - zlib
+
+packages:
+- ./
+
+- ../spiros
+
+extra-deps: []
