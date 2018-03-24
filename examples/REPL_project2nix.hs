@@ -1,0 +1,439 @@
+-- {-# LANGUAGE  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedLists #-}
+
+{-|
+
+
+= USAGE:
+
+Once this module is loaded in ghci, run 'main' to print out 'help'. e.g.:
+
+@
+$ cabal new-repl project2nix
+*REPL_project2nix> main
+...
+@
+
+
+= NOTES:
+
+== 'CondTree' and 'CondBranch'
+
+are mutually-recursive. 
+
+=== Definition
+
+@
+data CondTree v c a = 'CondNode'
+    { 'condTreeData'        :: a
+    , 'condTreeConstraints' :: c
+    , 'condTreeComponents'  :: ['CondBranch' v c a]
+    }
+
+data CondBranch v c a = 'CondBranch'
+    { 'condBranchCondition' :: 'Condition' v
+    , 'condBranchIfTrue'    :: CondTree v c a
+    , 'condBranchIfFalse'   :: Maybe (CondTree v c a)
+    }
+@
+
+=== Example
+
+@
+build-depends: base >= 4.0
+if flag(extra)
+    build-depends: base >= 4.2
+@
+
+is represented by a value of type
+
+@
+'CondTree' 'ConfVar' ['Dependency'] 'BuildInfo'
+@
+
+which specializes to
+
+@
+data CondTree ConfVar [Dependency] BuildInfo = CondNode
+    { condTreeData        :: BuildInfo
+    , condTreeConstraints :: [Dependency]
+    , condTreeComponents  :: [CondBranch ConfVar [Dependency] BuildInfo ]
+    }
+
+data CondBranch ConfVar [Dependency] BuildInfo = CondBranch
+    { condBranchCondition :: Condition ConfVar
+    , condBranchIfTrue    :: CondTree ConfVar [Dependency] BuildInfo
+    , condBranchIfFalse   :: Maybe (CondTree ConfVar [Dependency] BuildInfo)
+    }
+@
+
+a.k.a., with aliases:
+
+@
+type 'CondTreeBuildDepends'   = CondTree   ConfVar [Dependency] BuildInfo
+
+type 'CondBranchBuildDepends' = CondBranch ConfVar [Dependency] BuildInfo
+
+type 'ConditionConfVar' = 'Condition' 'ConfVar'
+
+CondTreeBuildDepends
+~
+{ condTreeData        :: BuildInfo
+, condTreeConstraints :: [Dependency]
+, condTreeComponents  :: ['CondBranchBuildDepends']
+}
+
+CondBranchBuildDepends
+~
+{ condBranchCondition :: 'ConditionConfVar'
+, condBranchIfTrue    :: 'CondTreeBuildDepends'
+, condBranchIfFalse   :: Maybe' 'CondTreeBuildDepends'
+}
+
+ConditionConfVar
+= 'Var'  'ConfVar'
+| 'Lit'  Bool
+| 'CNot' 'ConditionConfVar'
+| 'COr'  'ConditionConfVar' 'ConditionConfVar'
+| 'CAnd' 'ConditionConfVar' 'ConditionConfVar'
+
+@
+
+
+
+
+-}
+module REPL_project2nix 
+ ( module REPL_project2nix
+ , module ProjectToNix
+ , module X
+ , module Cabal
+ , module Prelude.Spiros 
+ --, module Distribution.Types.GenericPackageDescription.Lens
+ ) where
+
+----------------------------------------
+-- re-exported modules
+
+import           ProjectToNix
+
+import "lens" Control.Lens as X
+
+import "Cabal" Distribution.Types.Lens as X
+ -- lenses for most types
+import "Cabal" Distribution.Types.GenericPackageDescription      as X ( unFlagName, mkFlagAssignment, FlagAssignment )
+ --
+import "Cabal" Distribution.Types.Condition   as X
+import "Cabal" Distribution.Types.CondTree    as X
+import "Cabal" Distribution.Types.Dependency  as X
+
+import "Cabal" Distribution.Compiler  as X
+
+import "Cabal" Distribution.Pretty as X
+
+--import "Cabal" Distribution.PackageDescription                   as X
+
+import "bytestring" Data.ByteString  as X  (ByteString)
+
+import "spiros" Prelude.Spiros hiding (ByteString, Strict, (<&>), index, snoc, uncons, at, KnownHaskellCompiler(..))
+
+----------------------------------------
+-- used modules
+
+import qualified "Cabal" Distribution.Verbosity                     as Cabal
+import qualified "Cabal" Distribution.PackageDescription            as Cabal
+import qualified "Cabal" Distribution.PackageDescription.Parsec     as Cabal
+
+--import qualified "bytestring" Data.ByteString.Char8                 as BS
+
+--import Prelude.Distribution.Nixpkgs.Haskell.Cabal
+
+----------------------------------------
+-- types
+
+type CondTreeBuildDepends   = CondTree   ConfVar [Dependency] BuildInfo
+
+type CondBranchBuildDepends = CondBranch ConfVar [Dependency] BuildInfo
+
+type ConditionConfVar = Condition ConfVar
+
+----------------------------------------
+
+main :: IO ()
+main = do
+  traverse_ putStrLn help
+
+help :: [String]
+help = 
+ [ ""
+ , ":set -XOverloadedStrings"
+ , ""
+ , "g <- readCabalFile \"./data/spiros.cabal\"" 
+ , "g"
+ , ":t g"
+ , ""
+ , "g ^.. condTestSuites"
+ , ""
+ , "ts = g ^.. condTestSuites.traverse._2"
+ , "ts"
+ , ""
+ , "fs = g ^.. genPackageFlags.traverse.to(\\f -> (f ^. flagName.to(unFlagName), f ^. flagDefault))"
+ , "fs"
+ , ""
+ , ""
+ ]
+
+----------------------------------------
+
+{-|
+
+e.g.
+
+-}
+readCabalFile :: FilePath -> IO Cabal.GenericPackageDescription
+readCabalFile = Cabal.readGenericPackageDescription Cabal.verbose
+
+
+----------------------------------------
+
+knownCompilerFlavors' :: [CompilerFlavor]
+knownCompilerFlavors' = [GHC, GHCJS, NHC, YHC, Hugs, HBC, Helium, JHC, LHC, UHC]
+
+----------------------------------------
+{-EXAMPLES
+
+example snippets from repl sessions.
+
+> g ^.. genPackageFlags.traverse.flagName 
+[FlagName "examples",FlagName "test-doctest",FlagName "test-unit",FlagName "test-static"]
+
+> g ^.. genPackageFlags.traverse.to(\f -> (f ^. flagName, f ^. flagDefault))
+[(FlagName "examples",True),(FlagName "test-doctest",True),(FlagName "test-unit",True),(FlagName "test-static",False)]
+
+
+
+> fmap prettyShow knownCompilerFlavors'
+["ghc","ghcjs","nhc98","yhc","hugs","hbc","helium","jhc","lhc","uhc"]
+
+
+
+> ts
+...
+
+
+-- doctest test-suite
+>
+
+CondNode
+
+ { condTreeData 
+    = TestSuite
+        { testName = UnqualComponentName "", testInterface = TestSuiteExeV10 (mkVersion [1,0]) "DocTests.hs", testBuildInfo = BuildInfo {buildable = True, buildTools = [], buildToolDepends = [], cppOptions = [], asmOptions = [], cmmOptions = [], ccOptions = [], cxxOptions = [], ldOptions = [], pkgconfigDepends = [], frameworks = [], extraFrameworkDirs = [], asmSources = [], cmmSources = [], cSources = [], cxxSources = [], jsSources = [], hsSourceDirs = ["test"], otherModules = [], virtualModules = [], autogenModules = [], defaultLanguage = Just Haskell2010, otherLanguages = [], defaultExtensions = [], otherExtensions = [], oldExtensions = [], extraLibs = [], extraGHCiLibs = [], extraBundledLibs = [], extraLibFlavours = [], extraLibDirs = [], includeDirs = [], includes = [], installIncludes = [], options = [(GHC,["-Wall"])], profOptions = [], sharedOptions = [], staticOptions = [], customFieldsBI = [], targetBuildDepends = [Dependency (PackageName "base") AnyVersion,Dependency (PackageName "spiros") AnyVersion,Dependency (PackageName "doctest") AnyVersion], mixins = []}
+        }
+
+ , condTreeConstraints
+    = [ Dependency (PackageName "base") AnyVersion,Dependency (PackageName "spiros") AnyVersion,Dependency (PackageName "doctest") AnyVersion
+      ]
+
+ , condTreeComponents
+    = [ CondBranch
+        { condBranchCondition = CAnd (CNot (Var (Impl GHCJS AnyVersion))) (CNot (Var (Flag (FlagName "test-doctest"))))
+        , condBranchIfTrue = CondNode
+          { condTreeData = TestSuite {testName = UnqualComponentName "", testInterface = TestSuiteUnsupported (TestTypeUnknown "" (mkVersion [])), testBuildInfo = BuildInfo {buildable = False, buildTools = [], buildToolDepends = [], cppOptions = [], asmOptions = [], cmmOptions = [], ccOptions = [], cxxOptions = [], ldOptions = [], pkgconfigDepends = [], frameworks = [], extraFrameworkDirs = [], asmSources = [], cmmSources = [], cSources = [], cxxSources = [], jsSources = [], hsSourceDirs = [], otherModules = [], virtualModules = [], autogenModules = [], defaultLanguage = Nothing, otherLanguages = [], defaultExtensions = [], otherExtensions = [], oldExtensions = [], extraLibs = [], extraGHCiLibs = [], extraBundledLibs = [], extraLibFlavours = [], extraLibDirs = [], includeDirs = [], includes = [], installIncludes = [], options = [], profOptions = [], sharedOptions = [], staticOptions = [], customFieldsBI = [], targetBuildDepends = [], mixins = []}}, condTreeConstraints = [], condTreeComponents = []
+          }
+        , condBranchIfFalse = Nothing
+        }
+      ]
+ }
+
+
+i.e.
+
+
+CondBranch
+ { condBranchCondition
+    = CAnd (CNot (Var (Impl GHCJS AnyVersion)))
+           (CNot (Var (Flag (FlagName "test-doctest"))))
+ , condBranchIfTrue  = CondNode {...}
+ , condBranchIfFalse = Nothing
+ }
+
+
+
+-- a component/stanza without conditions
+
+this `.cabal` stanza:
+
+    test-suite static
+    
+     hs-source-dirs:      test
+     main-is:             StaticTests.hs
+     other-modules:
+      StaticTests.Generics
+    
+     type:                exitcode-stdio-1.0
+     default-language:    Haskell2010
+     ghc-options:         -Wall 
+    
+     build-depends:
+        base
+      , spiros
+
+becomes parsed into this `Cabal` expression:
+
+    CondNode
+    { condTreeData =
+      TestSuite
+       { testName = UnqualComponentName "", testInterface = TestSuiteExeV10 (mkVersion [1,0]) "StaticTests.hs", testBuildInfo = BuildInfo {buildable = True, buildTools = [], buildToolDepends = [], cppOptions = [], asmOptions = [], cmmOptions = [], ccOptions = [], cxxOptions = [], ldOptions = [], pkgconfigDepends = [], frameworks = [], extraFrameworkDirs = [], asmSources = [], cmmSources = [], cSources = [], cxxSources = [], jsSources = [], hsSourceDirs = ["test"], otherModules = [ModuleName ["StaticTests","Generics"]], virtualModules = [], autogenModules = [], defaultLanguage = Just Haskell2010, otherLanguages = [], defaultExtensions = [], otherExtensions = [], oldExtensions = [], extraLibs = [], extraGHCiLibs = [], extraBundledLibs = [], extraLibFlavours = [], extraLibDirs = [], includeDirs = [], includes = [], installIncludes = [], options = [(GHC,["-Wall"])], profOptions = [], sharedOptions = [], staticOptions = [], customFieldsBI = [], targetBuildDepends = [Dependency (PackageName "base") AnyVersion,Dependency (PackageName "spiros") AnyVersion], mixins = []}
+       }
+    , condTreeConstraints =
+        [ Dependency (PackageName "base") AnyVersion,Dependency (PackageName "spiros") AnyVersion
+        ]
+    , condTreeComponents = []
+    }
+
+i.e., eliding default/mempty values, which i represent by an underscore:
+    
+    CondNode
+    { condTreeData =
+        TestSuite
+          { _
+          , testInterface = TestSuiteExeV10 (mkVersion [1,0]) "StaticTests.hs"
+          , testBuildInfo =
+              BuildInfo
+                { _
+                , hsSourceDirs = ["test"]
+                , otherModules = [ModuleName ["StaticTests","Generics"]]
+                , defaultLanguage = Just Haskell2010
+                , options = [(GHC,["-Wall"])]
+                , targetBuildDepends =
+                    [ Dependency (PackageName "base") AnyVersion
+                    , Dependency (PackageName "spiros") AnyVersion
+                    ]
+                }
+          }
+    , condTreeConstraints =
+        [ Dependency (PackageName "base") AnyVersion
+        , Dependency (PackageName "spiros") AnyVersion
+        ]
+    , condTreeComponents = _
+    }
+
+
+
+-}
+
+----------------------------------------
+{-NOTES
+
+
+Distribution.Types.<TYPE>
+Distribution.Types.<TYPE>.Lens
+
+
+
+-- | A 'CondTree' is used to represent the conditional structure of
+-- a Cabal file, reflecting a syntax element subject to constraints,
+-- and then any number of sub-elements which may be enabled subject
+-- to some condition.  Both @a@ and @c@ are usually 'Monoid's.
+--
+-- To be more concrete, consider the following fragment of a @Cabal@
+-- file:
+--
+-- @
+-- build-depends: base >= 4.0
+-- if flag(extra)
+--     build-depends: base >= 4.2
+-- @
+--
+-- One way to represent this is to have @'CondTree' 'ConfVar'
+-- ['Dependency'] 'BuildInfo'@.  Here, 'condTreeData' represents
+-- the actual fields which are not behind any conditional, while
+-- 'condTreeComponents' recursively records any further fields
+-- which are behind a conditional.  'condTreeConstraints' records
+-- the constraints (in this case, @base >= 4.0@) which would
+-- be applied if you use this syntax
+--
+data CondTree v c a = CondNode
+    { condTreeData        :: a
+    , condTreeConstraints :: c
+    , condTreeComponents  :: [CondBranch v c a]
+    }
+
+
+
+
+instance HasBuildInfo Component
+
+instance HasBuildInfo Library
+
+instance HasBuildInfo ForeignLib
+
+instance HasBuildInfo Executable
+
+instance HasBuildInfo Benchmark
+instance HasBuildInfo BenchmarkStanza
+
+instance HasBuildInfo TestSuite
+instance HasBuildInfo TestSuiteStanza
+
+instance HasBuildInfo BuildInfo
+
+
+
+
+
+
+
+emptyBuildInfo :: BuildInfo
+instance Monoid BuildInfo where
+  mempty = BuildInfo {
+    buildable           = True,
+    buildTools          = [],
+    buildToolDepends    = [],
+    cppOptions          = [],
+    asmOptions          = [],
+    cmmOptions          = [],
+    ccOptions           = [],
+    cxxOptions          = [],
+    ldOptions           = [],
+    pkgconfigDepends    = [],
+    frameworks          = [],
+    extraFrameworkDirs  = [],
+    asmSources          = [],
+    cmmSources          = [],
+    cSources            = [],
+    cxxSources          = [],
+    jsSources           = [],
+    hsSourceDirs        = [],
+    otherModules        = [],
+    virtualModules      = [],
+    autogenModules      = [],
+    defaultLanguage     = Nothing,
+    otherLanguages      = [],
+    defaultExtensions   = [],
+    otherExtensions     = [],
+    oldExtensions       = [],
+    extraLibs           = [],
+    extraGHCiLibs       = [],
+    extraBundledLibs    = [],
+    extraLibFlavours    = [],
+    extraLibDirs        = [],
+    includeDirs         = [],
+    includes            = [],
+    installIncludes     = [],
+    options             = [],
+    profOptions         = [],
+    sharedOptions       = [],
+    staticOptions       = [],
+    customFieldsBI      = [],
+    targetBuildDepends  = [],
+    mixins    = []
+  }
+
+
+
+
+-}
+----------------------------------------

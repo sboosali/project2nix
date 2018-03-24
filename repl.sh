@@ -1,4 +1,4 @@
 #!/bin/sh
 ########################################
-nix-shell --run 'cabal new-repl project2nix'
+./environment.sh $@ --run 'cabal new-repl project2nix'
 ########################################

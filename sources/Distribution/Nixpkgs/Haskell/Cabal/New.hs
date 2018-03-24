@@ -35,7 +35,7 @@ import           "bytestring" Data.ByteString       (ByteString)
 -- import           "Cabal" Distribution.PackageDescription
 import qualified "Cabal" Distribution.PackageDescription            as Cabal
 import qualified "Cabal" Distribution.PackageDescription.Parsec     as Cabal
-import qualified "Cabal" Distribution.Parsec.Common as Cabal (showPError) 
+import qualified "Cabal" Distribution.Parsec.Common                 as Cabal (showPError)
 -- import           "Cabal" Distribution.Text          ( simpleParse, display )
 -- import           "Cabal" Distribution.Version
 
@@ -47,6 +47,20 @@ import qualified "Cabal" Distribution.Parsec.Common as Cabal (showPError)
 
 ----------------------------------------
 
+{-|
+
+e.g.
+
+@
+
+:set -XOverloadedStrings
+import qualified Data.ByteString as B
+s <- B.readFile "project2nix.cabal"
+runParseGenericPackageDescription "project2nix.cabal" s
+
+@
+
+-}
 runParseGenericPackageDescription
   :: FilePath
   -> ByteString
@@ -57,3 +71,12 @@ runParseGenericPackageDescription fpath
   . Cabal.parseGenericPackageDescription
 
 ----------------------------------------
+
+{-NOTES
+
+readGenericPackageDescription :: Verbosity -> FilePath -> IO GenericPackageDescription
+
+
+readFile :: FilePath -> IO ByteString
+
+-}

@@ -184,6 +184,12 @@ library
    -- (miscellaneous)
 
  exposed-modules:
+   REPL_project2nix 
+   -- the REPL_<package> module must be the first `exposed-module`, 
+   -- to be loaded via `cabal new-repl` by default. 
+
+   ProjectToNix 
+
    Distribution.Nixpkgs.Haskell.Cabal.Condition
    Distribution.Nixpkgs.Haskell.Cabal.Condition.Types
 
