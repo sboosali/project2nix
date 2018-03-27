@@ -1,20 +1,19 @@
 -- {-# LANGUAGE  #-}
 
-{-| The package-specific custom prelude, which re-exports 
-another custom ('Prelude.Spiros' from the @spiros@ package). 
+{-| A package-specific custom prelude.
+
+Re-exports another custom, 'Prelude.Spiros' (from the @spiros@ package). 
 
 -}
-module Prelude.Distribution.Nixpkgs.Haskell.Cabal
+module  Prelude_project2nix
  ( module Prelude.Spiros
- -- , module Prelude.Distribution.Nixpkgs.Haskell.Cabal
+ -- , module  Prelude_project2nix
  -- , module X
  ) where
 
 ----------------------------------------
 
 -- import as X
-
-
 
 import "spiros" Prelude.Spiros hiding (ByteString, Strict, (<&>), index, snoc, uncons, at, KnownHaskellCompiler(..))
 

@@ -190,18 +190,21 @@ library
 
    ProjectToNix 
 
+   Distribution.Nixpkgs.Haskell.Derivation
+   Distribution.Nixpkgs.Haskell.Derivation.Types
+
+   Distribution.Nixpkgs.Haskell.Cabal.Lens
+
    Distribution.Nixpkgs.Haskell.Cabal.Condition
    Distribution.Nixpkgs.Haskell.Cabal.Condition.Types
 
    Distribution.Nixpkgs.Haskell.Cabal.New
    Distribution.Nixpkgs.Haskell.Cabal.New.Types
-
-   Distribution.Nixpkgs.Haskell.Cabal.Lens
    
    Example.Distribution.Nixpkgs.Haskell.Cabal.New
 
  other-modules:
-   Prelude.Distribution.Nixpkgs.Haskell.Cabal
+   Prelude_project2nix
    -- Paths_project2nix
 
  -- autogen-modules:

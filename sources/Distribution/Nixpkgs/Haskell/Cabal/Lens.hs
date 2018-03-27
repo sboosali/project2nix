@@ -15,7 +15,7 @@ module Distribution.Nixpkgs.Haskell.Cabal.Lens
  ( module Distribution.Nixpkgs.Haskell.Cabal.Lens
  ) where
 ----------------------------------------
-import Prelude.Distribution.Nixpkgs.Haskell.Cabal
+import  Prelude_project2nix
 
 ----------------------------------------
 import Distribution.Nixpkgs.Haskell.Cabal.Condition.Types 

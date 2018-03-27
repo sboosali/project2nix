@@ -1,7 +1,7 @@
 module Distribution.Nixpkgs.Haskell.Cabal.Condition.Types where
 
 ----------------------------------------
-import Prelude.Distribution.Nixpkgs.Haskell.Cabal
+import  Prelude_project2nix
 
 ----------------------------------------
 --import qualified "Cabal" Distribution.Types.BuildInfo                 as Cabal
