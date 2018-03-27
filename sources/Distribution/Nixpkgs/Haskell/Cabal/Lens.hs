@@ -46,7 +46,7 @@ import qualified "Cabal" Distribution.Types.Condition                 as Cabal
 ----------------------------------------
 
 traverseConditional
-  :: Traversal (Conditional a) (Conditional b) a b
+  :: Traversal (CabalConditional a) (CabalConditional b) a b
 traverseConditional = traverse
 
 -- traverseConditions'GenericPackageDescription

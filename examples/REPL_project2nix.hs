@@ -316,26 +316,39 @@ type ConditionConfVar = Condition ConfVar
 
 main :: IO ()
 main = do
-  traverse_ putStrLn help
+  printHelp
+  where
+  printHelp = help
+    & traverse_ (\ls -> putStr "\n" >> traverse_ putStrLn ls)
 
-help :: [String]
+help :: [[String]]
 help = 
- [ ""
- , ":set -XOverloadedStrings"
- , ""
- , "g <- readCabalFile \"./data/spiros.cabal\"" 
- , "g"
- , ":t g"
- , ""
- , "g ^.. condTestSuites"
- , ""
- , "ts = g ^.. condTestSuites.traverse._2"
- , "ts"
- , ""
- , "fs = g ^.. genPackageFlags.traverse.to(\\f -> (f ^. flagName.to(unFlagName), f ^. flagDefault))"
- , "fs"
- , ""
- , "(d,u,s) = ts & (\\[d,u,s] -> (d,u,s))"
+ [ []
+
+ , [ ":set -XOverloadedStrings"
+   ]
+
+ , [ "g <- readCabalFile \"./data/spiros.cabal\"" 
+   , "g"
+   , ":t g"
+   ]
+
+ , [ "g ^.. condTestSuites"
+   ]
+   
+ , [ "ts = g ^.. condTestSuites.traverse._2"
+   , "ts"
+   ]
+
+ , [ "fs = g ^.. genPackageFlags.traverse.to(\\f -> (f ^. flagName.to(unFlagName), f ^. flagDefault))"
+   , "fs"
+ ]
+
+ , [ "(d,u,s) = ts & (\\[d,u,s] -> (d,u,s))"
+   ]
+
+ , []
+ , []
  ]
 
 ----------------------------------------
