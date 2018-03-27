@@ -38,6 +38,88 @@ data CondBranch v c a = 'CondBranch'
     }
 @
 
+When the 'condTreeComponents' are empty, there are no 'Condition's,
+a.k.a the expression is actually /unconditional/:
+
+@
+isUnconditionalCondTree :: CondTree v c a -> Maybe a
+isUnconditionalCondTree CondTree{..} =
+  if   'condTreeComponents' == []
+  then Just 'condTreeData'
+  else Nothing
+@
+
+and equivalent to @(a,c)@:
+
+@
+-- (Below are specializations and different representations of the type;
+-- I'm enumerating this for myself as a reminder, because even simple recursion can get complex)
+
+CondTree v c a
+
+~
+
+{ 'condTreeData'        :: a
+, 'condTreeConstraints' :: c
+, 'condTreeComponents'  :: ['CondBranch' v c a]
+}
+
+~
+
+( a
+, c
+, ['CondBranch' v c a]
+)
+@
+
+When @'condTreeComponents' == []@:
+
+@
+( x :: a
+, y :: c
+, []
+)
+
+~
+
+( x :: a
+, y :: c
+, ()
+)
+~
+
+( x :: a
+, y :: c
+)
+@
+
+And furthermore, by specializing @c~()@
+(i.e. we don't care about the value tagging each node, we just want the value):
+
+@
+( x :: a
+, y :: ()
+)
+
+~
+
+( x :: a
+, () :: ()
+)
+
+~
+
+( x :: a
+)
+
+~
+
+x :: a
+@
+
+So a @CondTree v c a@ wraps @a@, always "holding" at least one @a@. 
+
+
 === Example
 
 @
@@ -88,7 +170,7 @@ CondBranchBuildDepends
 ~
 { condBranchCondition :: 'ConditionConfVar'
 , condBranchIfTrue    :: 'CondTreeBuildDepends'
-, condBranchIfFalse   :: Maybe' 'CondTreeBuildDepends'
+, condBranchIfFalse   :: Maybe 'CondTreeBuildDepends'
 }
 
 ConditionConfVar
@@ -102,13 +184,84 @@ ConditionConfVar
 
 
 
+=== Optics
+
+===== 'traverseCondTreeV'
+
+@
+'Traversal'  (CondTree v c a) (CondTree w c a) v w
+'Traversal\'' (CondTree v c a)                  v 
+
+traverseCondTreeV f (CondNode a c ifs) =
+    CondNode a c <$> traverse (traverseCondBranchV f) ifs
+@
+
+===== 'traverseCondBranchV'
+
+@
+'Traversal'   (CondBranch v c a) (CondBranch w c a) v w
+'Traversal\'' (CondBranch v c a)                    v 
+
+traverseCondBranchV f (CondBranch cnd t me) = CondBranch
+    <$> traverse f cnd
+    <*> traverseCondTreeV f t
+    <*> traverse (traverseCondTreeV f) me
+@
+
+
+
+
+== Functions
+
+
+==== 'extractCondition':
+
+@
+extractCondition
+  :: Eq v
+  => (a -> Bool) -> CondTree v c a -> Condition v 
+
+Extract the condition matched by the given predicate from a cond tree.
+We use this mainly for extracting buildable conditions.
+
+extractCondition ('const' False) = _
+extractCondition ('const' True)  = _
+
+extractCondition ('const' False) = 'Lit' False -- ?
+extractCondition ('const' True)  = 'Lit' True  -- ?
+
+
+@
+
+
+==== 'simplifyCondTree':
+
+@
+simplifyCondTree
+  :: (Monoid a, Monoid d)
+  => (v -> Either v Bool) -> CondTree v d a -> (d, a) 
+
+Flattens a CondTree using a partial flag assignment.
+When a condition cannot be evaluated, both branches are ignored.
+
+If-Then branches (i.e. not If-Then-Else), when true, are merged with their parent via the 'Monoid'.
+@
+
+
+
+
+
 
 -}
 module REPL_project2nix 
  ( module REPL_project2nix
+
  , module ProjectToNix
+
  , module X
+
  , module Cabal
+
  , module Prelude.Spiros 
  --, module Distribution.Types.GenericPackageDescription.Lens
  ) where
@@ -122,11 +275,12 @@ import "lens" Control.Lens as X
 
 import "Cabal" Distribution.Types.Lens as X
  -- lenses for most types
-import "Cabal" Distribution.Types.GenericPackageDescription      as X ( unFlagName, mkFlagAssignment, FlagAssignment )
+import "Cabal" Distribution.Types.GenericPackageDescription      as X ( GenericPackageDescription(GenericPackageDescription), unFlagName, mkFlagAssignment, FlagAssignment )
  --
 import "Cabal" Distribution.Types.Condition   as X
 import "Cabal" Distribution.Types.CondTree    as X
 import "Cabal" Distribution.Types.Dependency  as X
+import "Cabal" Distribution.Types.UnqualComponentName as X
 
 import "Cabal" Distribution.Compiler  as X
 
@@ -181,7 +335,7 @@ help =
  , "fs = g ^.. genPackageFlags.traverse.to(\\f -> (f ^. flagName.to(unFlagName), f ^. flagDefault))"
  , "fs"
  , ""
- , ""
+ , "(d,u,s) = ts & (\\[d,u,s] -> (d,u,s))"
  ]
 
 ----------------------------------------
@@ -293,16 +447,16 @@ becomes parsed into this `Cabal` expression:
     , condTreeComponents = []
     }
 
-i.e., eliding default/mempty values, which i represent by an underscore:
+i.e., eliding default/mempty values, which i represent by an ellispis (and an underscore represents an unknown or unimportant value):
     
     CondNode
     { condTreeData =
         TestSuite
-          { _
+          { testName      = _
           , testInterface = TestSuiteExeV10 (mkVersion [1,0]) "StaticTests.hs"
           , testBuildInfo =
               BuildInfo
-                { _
+                { ...
                 , hsSourceDirs = ["test"]
                 , otherModules = [ModuleName ["StaticTests","Generics"]]
                 , defaultLanguage = Just Haskell2010
@@ -317,8 +471,82 @@ i.e., eliding default/mempty values, which i represent by an underscore:
         [ Dependency (PackageName "base") AnyVersion
         , Dependency (PackageName "spiros") AnyVersion
         ]
-    , condTreeComponents = _
+    , condTreeComponents = []
     }
+
+
+
+
+
+-- the `unit` test-suite, `u`
+
+> extractCondition (view buildable) u
+Var (Flag (FlagName "examples"))
+
+> extractCondition (not . view buildable) u
+Lit False
+
+
+-- the `doctest` test-suite, `d`
+
+> extractCondition (view buildable) d
+CNot (CAnd (CNot (Var (Impl GHCJS AnyVersion))) (CNot (Var (Flag (FlagName "test-doctest")))))
+
+> extractCondition (not . view buildable) d
+Lit False
+
+
+
+
+
+
+> d & 
+
+
+
+
+-- d & simplifyCondTree (\v -> v ^? (_Impl . _1) == Just GHCJS)
+
+d & simplifyCondTree (\v -> v ^? (_Impl . _1) == Just GHCJS)
+
+
+> d & simplifyCondTree (\case; Impl compiler _version -> Right (compiler == GHCJS); v -> Left v)
+
+( [ Dependency (PackageName "base") AnyVersion,Dependency (PackageName "spiros") AnyVersion,Dependency (PackageName "doctest") AnyVersion
+  ]
+, TestSuite
+  {testName = UnqualComponentName "", testInterface = TestSuiteExeV10 (mkVersion [1,0]) "DocTests.hs", testBuildInfo = BuildInfo {buildable = True, buildTools = [], buildToolDepends = [], cppOptions = [], asmOptions = [], cmmOptions = [], ccOptions = [], cxxOptions = [], ldOptions = [], pkgconfigDepends = [], frameworks = [], extraFrameworkDirs = [], asmSources = [], cmmSources = [], cSources = [], cxxSources = [], jsSources = [], hsSourceDirs = ["test"], otherModules = [], virtualModules = [], autogenModules = [], defaultLanguage = Just Haskell2010, otherLanguages = [], defaultExtensions = [], otherExtensions = [], oldExtensions = [], extraLibs = [], extraGHCiLibs = [], extraBundledLibs = [], extraLibFlavours = [], extraLibDirs = [], includeDirs = [], includes = [], installIncludes = [], options = [(GHC,["-Wall"])], profOptions = [], sharedOptions = [], staticOptions = [], customFieldsBI = [], targetBuildDepends = [Dependency (PackageName "base") AnyVersion,Dependency (PackageName "spiros") AnyVersion,Dependency (PackageName "doctest") AnyVersion], mixins = []}
+  }
+)
+
+aka:
+
+( [ ... ]
+
+, TestSuite
+  { testName      = UnqualComponentName "???"
+  , testInterface = TestSuiteExeV10 (mkVersion [1,0]) "DocTests.hs"
+  , testBuildInfo =
+      BuildInfo
+        { ...
+        , hsSourceDirs = ["test"]
+        , otherModules = [ModuleName ["StaticTests","Generics"]]
+        , defaultLanguage = Just Haskell2010
+        , options = [(GHC,["-Wall"])]
+        , targetBuildDepends =
+            [ Dependency (PackageName "base") AnyVersion
+            , Dependency (PackageName "spiros") AnyVersion
+            , Dependency (PackageName "doctest") AnyVersion
+            ]
+        }
+  }
+)
+
+
+
+> d & simplifyCondTree (\case; Impl compiler _version -> Right (compiler == GHCJS); v -> Left v)
+
+
 
 
 

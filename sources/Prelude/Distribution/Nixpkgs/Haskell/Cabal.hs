@@ -14,7 +14,9 @@ module Prelude.Distribution.Nixpkgs.Haskell.Cabal
 
 -- import as X
 
-import "spiros" Prelude.Spiros hiding (ByteString)
+
+
+import "spiros" Prelude.Spiros hiding (ByteString, Strict, (<&>), index, snoc, uncons, at, KnownHaskellCompiler(..))
 
 
 ----------------------------------------

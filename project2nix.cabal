@@ -196,6 +196,8 @@ library
    Distribution.Nixpkgs.Haskell.Cabal.New
    Distribution.Nixpkgs.Haskell.Cabal.New.Types
 
+   Distribution.Nixpkgs.Haskell.Cabal.Lens
+   
    Example.Distribution.Nixpkgs.Haskell.Cabal.New
 
  other-modules:
