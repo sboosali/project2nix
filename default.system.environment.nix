@@ -1,11 +1,15 @@
+# non-Haskell Nix environment, with executables and system dependencies only
+
 { mkDerivation
 #, stdenv 
 #, lib
 
-# systemPackages
+, systemPackages ? {}
+  # ^ explicit namespace which should be redundant
 , zlib
 
-# haskellPackages
+, haskellPackages ? {}
+  # ^ explicit namespace which should be redundant
 , alex
 , happy
 
@@ -25,8 +29,6 @@ mkDerivation {
   inherit buildInputs;
 
   name = "project2nix-system-environment";
-
-
 
   # src = ./.; 
 

@@ -2,17 +2,17 @@
 , nixpkgsWith ? import nixpkgsPath
 , nixpkgs     ? nixpkgsWith {}
 
-, pkgs      ? nixpkgs.pkgs
-
+, pkgs              ? nixpkgs.pkgs
 , callSystemPackage ? pkgs.callPackage
 
-, stdenv    ? pkgs.stdenv
-, utilities ? stdenv.lib
+, stdenv       ? pkgs.stdenv
+, mkDerivation ? stdenv.mkDerivation
 
+, utilities       ? stdenv.lib
 , fetchFromGitHub ? utilities.fetchFromGitHub
 , importJSON      ? utilities.importJSON
   
-, derivationPath ? ./environment.nix
+, derivationPath ? ./default.system.environment.nix
 
 , compiler       ? null
 , resolver       ? null
@@ -40,39 +40,39 @@ in
 ########################################
 let
 
-customMkDerivation = self: super: args:
-  super.mkDerivation
-    (args // customDerivationOptions);
+# customMkDerivation = self: super: args:
+#   super.mkDerivation
+#     (args // customDerivationOptions);
 
-customDerivationOptions = 
-    { enableLibraryProfiling = withProfiled; 
-      doCheck                = withTested; 
-      doBenchmark            = withBenchmarked; 
-      doHaddock              = withDocumented;
-      doHyperlinkSource      = withDocumented && withHyperlinked;
-      enableDWARFDebugging   = withDwarf;
-    } //
-    ( if   (whichObjectLibrary == "shared") 
-      then { enableSharedLibraries  = true; 
-           }
-      else 
-      if   (whichObjectLibrary == "static")
-      then { enableStaticLibraries  = true; 
-           }
-      else
-      if   (whichObjectLibrary == "both") # TODO
-      then { enableSharedLibraries  = true;
-             enableStaticLibraries  = true; 
-           }
-      else 
-      if   (whichObjectLibrary == "default")
-      then {}
-      else {} # TODO
-    ) // 
-    utilities.optionalAttrs (whichLinker == "gold") 
-      { linkWithGold = true;
-      }
- ;
+# customDerivationOptions = 
+#     { enableLibraryProfiling = withProfiled; 
+#       doCheck                = withTested; 
+#       doBenchmark            = withBenchmarked; 
+#       doHaddock              = withDocumented;
+#       doHyperlinkSource      = withDocumented && withHyperlinked;
+#       enableDWARFDebugging   = withDwarf;
+#     } //
+#     ( if   (whichObjectLibrary == "shared") 
+#       then { enableSharedLibraries  = true; 
+#            }
+#       else 
+#       if   (whichObjectLibrary == "static")
+#       then { enableStaticLibraries  = true; 
+#            }
+#       else
+#       if   (whichObjectLibrary == "both") # TODO
+#       then { enableSharedLibraries  = true;
+#              enableStaticLibraries  = true; 
+#            }
+#       else 
+#       if   (whichObjectLibrary == "default")
+#       then {}
+#       else {} # TODO
+#     ) // 
+#     utilities.optionalAttrs (whichLinker == "gold") 
+#       { linkWithGold = true;
+#       }
+#  ;
 
 hooglePackagesOverride = self: super:
   {
@@ -112,22 +112,32 @@ haskellPackagesWithCustomPackages2 =
 haskellPackagesWithCustomDerivation3 = 
   haskellPackagesWithCustomPackages2.override {
     overrides = self: super: {
-      mkDerivation = customMkDerivation self super;
+      # mkDerivation = customMkDerivation self super;
     };
-
 };
 
-callHaskellPackage = haskellPackagesWithCustomDerivation3.callPackage;
+haskellPackages = haskellPackagesWithCustomDerivation3;
 
-callPackage = callHaskellPackage;
+callHaskellPackage = haskellPackages.callPackage;
 
 in
 ########################################
 let
 
-_derivation = callPackage derivationPath {};
+callPackage = callSystemPackage;
 
-environment = _derivation.env;
+_derivation = callPackage derivationPath {
+ inherit mkDerivation;
+
+ systemPackages  = pkgs;
+ # inherit (haskellPackages) zlib;
+
+ haskellPackages = haskellPackages;
+ inherit (haskellPackages) alex happy;
+
+};
+
+environment = _derivation; #.env;
 
 in
 ########################################
