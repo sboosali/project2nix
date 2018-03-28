@@ -269,7 +269,8 @@ library
     , containers
     , deepseq >=1.4
 
-    -- , aeson
+    , lens
+    , aeson
     , optparse-applicative
 
     -- , directory

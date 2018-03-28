@@ -1,6 +1,8 @@
+----------------------------------------
 packages:
-  ./
+ ./
 
+----------------------------------------
 optional-packages: 
 
  -- my local dependencies
@@ -8,9 +10,109 @@ optional-packages:
  ../spiros/
  ../Vinyl/
 
-
  -- vendor `cabal`
+ -- nix-shell -p zlib -p haskellPackages.alex -p haskellPackages.happy --command 'cabal new-build all'
 
  ./cabal/Cabal/
  ./cabal/cabal-install/
 
+----------------------------------------
+
+-- package options: 
+-- [1] at the top-level: only affect LOCAL packages. 
+-- [2] within a `<package>` stanza: they affect <package>, whether or not it's local or external.
+-- [3] within a `<package> *` stanza ??
+
+-- `<executable>-options` and `<executable>-location` can't be top-level. 
+-- e.g. `ghc-options` and `ghc-location`
+
+-- flags: +development
+-- 
+-- A common mistake is to say cabal new-build -fhans, where hans is a flag for a transitive dependency that is not in the local package; in this case, the flag will be silently ignored. If haskell-tor is the package you want this flag to apply to, try --constraint="haskell-tor +hans" instead.
+
+----------------------------------------
+constraints:
+   cabal-install +lib 
+ , cabal-install ^>= 2.3 
+   -- ^
+   -- contrain `cabal-install` to:
+   -- - have a version range of `>=2.3.0.0 && <2.4`;
+   -- - forcefully enable its `lib` flag (a.k.a. `-flib`).
+   -- 
+   --   -- cabal-install.cabal:
+   --   flag lib
+   --     Default:      False
+   --     Manual:       True
+
+-- NOTE: multiple constraints require multiple lines 
+-- (but multiple flag assignments can be on the same line).
+
+----------------------------------------
+-- with-compiler: 
+
+-- Specify the path to a particular compiler to be used. If not an absolute path, it will be resolved according to the PATH environment. The type of the compiler (GHC, GHCJS, etc) must be consistent with the setting of the compiler field.
+-- The most common use of this option is to specify a different version of your compiler to be used; e.g., if you have ghc-7.8 in your path, you can specify with-compiler: ghc-7.8 to use it.
+-- 
+-- [cabal.project] with-compiler: executable
+-- [$ cabal]       --with-compiler=executable
+
+----------------------------------------   
+cabal-lib-version: 2.3
+-- This field selects the version of the Cabal library which should be used to build packages. 
+-- This option is intended primarily for internal development use (e.g., forcing a package to build with a newer version of Cabal, to test a new version of Cabal.)
+
+----------------------------------------
+optimization: 0
+-- The optional nat value is the optimisation level. Some compilers support multiple optimisation levels. The range is 0 to 2.
+-- Level 0 disables optimization, level 1 is the default. 
+-- Level 2 is higher optimisation if the compiler supports it. Level 2 is likely to lead to longer compile times and bigger generated code. If you are not planning to run code, turning off optimization will lead to better build times and less code to be rebuilt when a module changes.
+-- When optimizations are enabled, Cabal passes -O2 to the C compiler.
+
+----------------------------------------
+profiling: True
+-- `profiling` means both `library-profiling` and `executable-profiling`
+
+profiling-detail: all-functions
+-- all functions (in each module, whether top level or local) are assigned cost-centers. 
+-- In GHC, this is `exported-functions` plus `toplevel-functions` plus functions-or-values that are "non-inline toplevel" or "where-bound"
+-- Corresponds to `-fprof-auto`
+
+-- coverage: True
+-- -- Build all componentdep libraries and executables (including test suites) with Haskell Program Coverage enabled. Running the test suites will automatically generate coverage reports with HPC.
+
+----------------------------------------
+
+documentation:            True
+haddock-hoogle:           True
+haddock-internal:         True
+haddock-hyperlink-source: True
+
+-- haddock-internal: Build haddock documentation which includes unexposed modules and symbols
+
+----------------------------------------
+
+-- allow-newer: 
+--  hackage-security:Cabal
+
+-- allow-newer: [none, all, [scope:][^]pkg, ...]
+
+-- allow-newer: bar, baz, ^quux
+-- 
+-- Disregard upper bounds involving the dependencies on
+-- packages bar, baz.
+-- For quux only, relax 'quux ^>= ...'-style constraints only.
+
+-- allow-newer: pkg-1.2.3:*
+--
+-- Disregard any upper bounds specified by pkg-1.2.3
+
+-- -- Selectively relax `hackage-security`'s version bound,
+-- -- only when building `Cabal`. 
+
+----------------------------------------
+
+package cabal-install 
+ flags: +lib
+
+----------------------------------------
+-- http://blog.ezyang.com/2016/05/announcing-cabal-new-build-nix-style-local-builds/
