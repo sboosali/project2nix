@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
 ########################################
-cabal2nix .         > ./project2nix.nix
+cabal2nix .         $@ > ./project2nix.nix
 ########################################
-cabal2nix . --shell > ./shell.project2nix.nix
+cabal2nix . --shell $@ > ./shell.project2nix.nix
 ########################################
 echo
 echo '[default.nix]'

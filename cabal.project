@@ -1,2 +1,16 @@
 packages:
   ./
+
+optional-packages: 
+
+ -- my local dependencies
+
+ ../spiros/
+ ../Vinyl/
+
+
+ -- vendor `cabal`
+
+ ./cabal/Cabal/
+ ./cabal/cabal-install/
+

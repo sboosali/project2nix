@@ -1,7 +1,6 @@
-{ mkDerivation, aeson, base, bytestring, Cabal, containers, deepseq
-, directory, doctest, filepath, hnix, lens, optparse-applicative
-, prettyprinter, process, spiros, split, stdenv, tasty
-, tasty-golden, text, time, transformers, yaml
+{ mkDerivation, base, bytestring, Cabal, cabal-install, containers
+, deepseq, hnix, optparse-applicative, prettyprinter, spiros
+, stdenv, text
 }:
 mkDerivation {
   pname = "project2nix";
@@ -9,12 +8,8 @@ mkDerivation {
   src = ./.;
   enableSeparateDataOutput = true;
   libraryHaskellDepends = [
-    aeson base bytestring Cabal containers deepseq directory filepath
-    hnix lens optparse-applicative prettyprinter process spiros split
-    text time transformers yaml
-  ];
-  testHaskellDepends = [
-    base Cabal doctest filepath lens prettyprinter tasty tasty-golden
+    base bytestring Cabal cabal-install containers deepseq hnix
+    optparse-applicative prettyprinter spiros text
   ];
   homepage = "http://github.com/sboosali/project2nix#readme";
   description = "TODO";

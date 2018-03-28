@@ -18,7 +18,8 @@ nixpkgs = nixpkgsWith { overlays = [(self: super: ...), ...] }
 
 */
 
-, packageDotNix ? null
+, packageDotNix ? ./default.nix 
+#, packageDotNix ? null
 /* : Maybe FilePath
 
 `null` means: use `cabal2nix ./.`
@@ -602,6 +603,7 @@ hackage_ : String/Name -> String/Version ->              -> Derivation
 myHaskellOverlaysWith = pkgs: self: super: let
 #myHaskellOverlaysWith = pkgs: self: super: let
  call = path: self.callPackage path {}; 
+ callWith = self.callPackage;
 
  local      = path:
               self.callPackage path; 
@@ -654,28 +656,44 @@ myHaskellOverlaysWith = pkgs: self: super: let
    ######################################## 
 
   spiros = local2nix_ ../spiros;
-  vinyl = local2nix_ ../vinyl;
+  vinyl  = local2nix_ ../vinyl;
 
-  Cabal = self.Cabal_2_3_0_0;
+  text = hackage "text" "1.2.3.0" {
+  };
 
-  Cabal_2_2_0_0 = call ./Cabal-2.2.0.0.nix; 
+  Cabal = self.Cabal23;
+
+  cabal-install = callWith ./cabal-install-2.3.0.0.nix {
+    Cabal = self.Cabal23;
+  };  # ^ from github
+
+  Cabal23 = callWith ./Cabal-2.3.0.0.nix {
+    inherit (self) text;
+  };  # ^ from github
+
+  Cabal22 = call ./Cabal-2.2.0.0.nix; 
   # ^ from hackage
 
-  Cabal_2_3_0_0 = call ./Cabal-2.3.0.0.nix;
-  # ^ from github
+  # cabal-install_2_3_0_0 = callWith ./cabal-install-2.3.0.0.nix {
+  #   Cabal = self.Cabal_2_3_0_0;
+  # };
+  # # ^ from github
+
+  # Cabal         = self.Cabal_2_3_0_0;
+  # cabal-install = self.cabal-install_2_3_0_0;
 
   safe-exceptions = call ./safe-exceptions.nix;
   
   # lens
     # for cabal-doctest in custom-setup
   # lens = jailbreak (super.lens);
-  lens = hackage "lens" "4.16" {
-    #TODO use scope
-    Cabal = self.Cabal_2_2_0_0; 
-    cabal-doctest = hackage "cabal-doctest" "1.0.6" {
-    Cabal = self.Cabal_2_2_0_0;
-     };
-  };  
+  # lens = hackage "lens" "4.16" {
+  #   #TODO use scope
+  #   Cabal = self.Cabal23;
+  #   cabal-doctest = hackage "cabal-doctest" "1.0.6" {
+  #     Cabal = self.Cabal23;
+  #   };
+  # };  
 
   # text = hackage_ "text" "1.2.3.0";
   # hpack                = hackage_ "hpack" "0.28.0";
