@@ -17,8 +17,15 @@
 
 let
 
-buildInputs = [ 
+buildInputs = [
+
+];
+
+propagatedNativeBuildInputs = [
  zlib 
+];
+
+nativeBuildInputs = [
  alex happy
 ];
 
@@ -27,6 +34,8 @@ in
 mkDerivation {
 
   inherit buildInputs;
+  inherit nativeBuildInputs;
+  inherit propagatedNativeBuildInputs;
 
   name = "project2nix-system-environment";
 

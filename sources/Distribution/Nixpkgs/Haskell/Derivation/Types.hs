@@ -30,6 +30,8 @@ import GHC.Generics ( Generic )
 
 ----------------------------------------
 
+{-
+
 -- | (from @cabal2nix@). 
 data Derivation = MkDerivation
   { _pkgid                      :: PackageIdentifier
@@ -39,11 +41,6 @@ data Derivation = MkDerivation
   , _isLibrary                  :: Bool
   , _isExecutable               :: Bool
   , _extraFunctionArgs          :: Set Binding
-  , _setupDepends               :: BuildInfo
-  , _libraryDepends             :: BuildInfo
-  , _executableDepends          :: BuildInfo
-  , _testDepends                :: BuildInfo
-  , _benchmarkDepends           :: BuildInfo
   , _configureFlags             :: Set String
   , _cabalFlags                 :: FlagAssignment
   , _runHaddock                 :: Bool
@@ -64,31 +61,121 @@ data Derivation = MkDerivation
 emptyDerivation :: Derivation
 emptyDerivation = _ -- MkDerivation
 
+-}
+
 ----------------------------------------
 
+{-| Every cabal package has one-or-more components. 
+
+For example, this @haskell@ expression:
+
+@
+-- :: PackageDependencies String
+'PackageDependencies' 
+  [ 'ComponentDependencies' 'Library' ('emptyDependencies'
+       { '_haskellDependencies'   = [ "base" ]
+       , '_toolDependencies'      = [ "alex", "happy" ]
+       , '_systemDependencies'    = [ "zlib" ]
+       })
+  , 'ComponentDependencies' 'Setup' ('emptyDependencies'
+       { '_haskellDependencies' = [ "cabal-doctest" ]
+       })
+  ]
+@
+
+represents this @nix@ fragment:
+
+@
+mkDerivation {
+ ...
+ libraryHaskellDepends = [ base ];
+ libraryToolDepends    = [ alex happy ];
+ librarySystemDepends  = [ zlib ];
+ setupDepends          = [ cabal-doctest ];
+ ...
+}
+@
+
+-}
+newtype PackageDependencies a = PackageDependencies
+ [ ComponentDependencies a ]
+
+emptyPackageDependencies :: PackageDependencies a
+emptyPackageDependencies = PackageDependencies []
+
+----------------------------------------
+
+{-|
+
+Insofar as different components are independent from each other (i.e. aren't linked together), they can depend on completely different versions of the same package.  
+
+-}
+data ComponentDependencies a = ComponentDependencies
+ { _component    :: Component
+ , _dependencies :: Dependencies a
+ }
+
+----------------------------------------
+
+{-|
+
+The different dependency fields have different "package namespaces, "haskell packages" versus "system packages". In particular, w.r.t. whatever's releveant for rendering a @.nix@ derivation:
+
+* haskell packages: a.k.a. @haskellPackages@; for '_haskellDependencies' (i.e. haskell libraries) and '_toolDependencies' (i.e. haskell executables)
+* system packages: a.k.a. @pkgs@; for '_systemDependencies' and '_pkgconfigDependencies'. 
+
+-}
 data Dependencies a = Dependencies
-  { _haskell   :: a  -- ^ @build-depends@ 
-  , _tool      :: a  -- ^ @tool-depends@ 
-  , _pkgconfig :: a  -- ^ @pkgconfig-depends@ 
-  , _system    :: a  -- ^ @extra-libraries@ 
-  }
+  { _haskellDependencies   :: [a]  -- ^ @build-depends@ 
+  , _toolDependencies      :: [a]  -- ^ @tool-depends@ 
+  , _systemDependencies    :: [a]  -- ^ @extra-libraries@ 
+  , _pkgconfigDependencies :: [a]  -- ^ @pkgconfig-depends@ 
+  } deriving (Generic)
+
+-- | point-wise appending ('gmappend')
+instance Semigroup (Dependencies a) where
+  (<>) = gmappend
+
+-- | 'emptyDependencies'
+instance Monoid (Dependencies a) where
+  mempty = emptyDependencies
+
+emptyDependencies :: Dependencies a
+emptyDependencies = Dependencies{..}
+ where
+ _haskellDependencies   = []
+ _toolDependencies      = []
+ _systemDependencies    = []
+ _pkgconfigDependencies = []
 
 ----------------------------------------
 
+{-|
+
+
+-}
 data Component
  = Library    -- ^ represents: the @library@ stanza, including any sub-libraries; and any @foreign-library@ stanzas. 
  | Executable -- ^ @executable@
  | TestSuite  -- ^ @test-suite@
  | Benchmark  -- ^ @benchmark@
  | Setup      -- ^ represents @custom-setup@
+
+{- | @= 'Library'@
+
+By default (most frequently), a Haskell provides a single library, 
+
+-}
+defaultComponent :: Component
+defaultComponent = Library
  
 ----------------------------------------
  
-makeLenses ''Derivation
-makeLenses ''Dependencies
+-- makeLenses ''Derivation
+-- makeLenses ''ComponentDependencies
+-- makeLenses ''Dependencies
 
-makePrisms ''Component
-
+-- makePrisms ''Component
 
 ----------------------------------------
 

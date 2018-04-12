@@ -39,8 +39,7 @@ $ find ./nix
 ./nix/spiros_only-library.nix
 */
 
-, compiler ? "ghc841"
-# ? null
+, compiler ? null
 /* : Maybe String 
 
 `null` means: use the default, 
@@ -655,35 +654,41 @@ myHaskellOverlaysWith = pkgs: self: super: let
    # Add Haskell Packages Below           #
    ######################################## 
 
+  #TODO pkgs.all-cabal-hashes
+
   spiros = local2nix_ ../spiros;
   vinyl  = local2nix_ ../vinyl;
 
   text = hackage "text" "1.2.3.0" {
   };
 
-  Cabal = self.Cabal23;
-
-  cabal-install = callWith ./cabal-install-2.3.0.0.nix {
-    Cabal = self.Cabal23;
-  };  # ^ from github
-
-  Cabal23 = callWith ./Cabal-2.3.0.0.nix {
-    inherit (self) text;
-  };  # ^ from github
-
-  Cabal22 = call ./Cabal-2.2.0.0.nix; 
-  # ^ from hackage
-
-  # cabal-install_2_3_0_0 = callWith ./cabal-install-2.3.0.0.nix {
-  #   Cabal = self.Cabal_2_3_0_0;
-  # };
-  # # ^ from github
-
-  # Cabal         = self.Cabal_2_3_0_0;
-  # cabal-install = self.cabal-install_2_3_0_0;
-
-  safe-exceptions = call ./safe-exceptions.nix;
+  Cabal = hackage "Cabal" "2.2.0.0" {};
   
+  cabal-install = hackage "cabal-install" "2.2.0.0" {
+    inherit (self) Cabal;
+  }; #TODO +lib flag
+  
+  safe-exceptions = call ./safe-exceptions.nix;
+
+  # cabal-install = callWith ./cabal-install-2.3.0.0.nix {
+  #   Cabal = self.Cabal23;
+  # };  # ^ from github
+
+  # Cabal23 = callWith ./Cabal-2.3.0.0.nix {
+  #   inherit (self) text;
+  # };  # ^ from github
+
+  # Cabal22 = call ./Cabal-2.2.0.0.nix; 
+  # # ^ from hackage
+
+  # # cabal-install_2_3_0_0 = callWith ./cabal-install-2.3.0.0.nix {
+  # #   Cabal = self.Cabal_2_3_0_0;
+  # # };
+  # # # ^ from github
+
+  # # Cabal         = self.Cabal_2_3_0_0;
+  # # cabal-install = self.cabal-install_2_3_0_0;
+
   # lens
     # for cabal-doctest in custom-setup
   # lens = jailbreak (super.lens);
