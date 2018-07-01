@@ -11,4 +11,12 @@ packages:
 
 - ../spiros
 
-extra-deps: []
+extra-deps:
+- Cabal-2.3.0.0
+- cabal-install-2.3.0.0
+
+- hnix-0.5.1
+- hashing-0.1.0.1
+- monadlist-0.0.2
+- serialise-0.2.0.0
+- cborg-0.2.0.0
