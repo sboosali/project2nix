@@ -1,6 +1,7 @@
 ----------------------------------------
 packages:
- ./
+
+ ./project2nix/
 
 ----------------------------------------
 optional-packages: 
@@ -13,8 +14,8 @@ optional-packages:
  -- vendor `cabal`
  -- nix-shell -p zlib -p haskellPackages.alex -p haskellPackages.happy --command 'cabal new-build all'
 
- ./cabal/Cabal/
- ./cabal/cabal-install/
+ ./vendored/cabal/Cabal/
+ ./vendored/cabal/cabal-install/
 
 ----------------------------------------
 
