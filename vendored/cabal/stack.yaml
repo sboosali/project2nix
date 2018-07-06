@@ -1,0 +1,16 @@
+resolver: nightly-2018-01-17
+packages:
+- Cabal/
+- cabal-install/
+- cabal-testsuite/
+extra-deps:
+  - resolv-0.1.1.1
+  - QuickCheck-2.11.3
+nix:
+  packages:
+  - autoconf
+  - automake
+  - haskellPackages.happy
+  - haskellPackages.alex
+  - zlib
+  - zlib.out
