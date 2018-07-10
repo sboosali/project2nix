@@ -1,0 +1,7 @@
+{
+  "url": "https://github.com/haskell/cabal",
+  "rev": "dcc157c6accd76df18285c7c6148b970b58f2a71",
+  "date": "2018-07-09T02:42:12-07:00",
+  "sha256": "0qyd5lkyps6mwlmsp3ir6mc70cm8qx4rrkfayx9vrpwpi0li7gqd",
+  "fetchSubmodules": false
+}
