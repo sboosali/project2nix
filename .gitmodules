@@ -1,3 +1,9 @@
 [submodule "cabal"]
 	path = cabal
 	url = https://github.com/haskell/cabal/
+[submodule "vendored/cabal"]
+	path = vendored/cabal
+	url = https://github.com/haskell/cabal
+[submodule "submodules/cabal"]
+	path = submodules/cabal
+	url = https://github.com/haskell/cabal
